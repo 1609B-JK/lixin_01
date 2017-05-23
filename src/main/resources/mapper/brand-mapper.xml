@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >  
+<mapper namespace="com.jk.dao.brand.BrandDao">
+
+    <select id="findBrandCount" parameterType="brand" resultType="int">
+        SELECT count(t_id) FROM brand
+    </select>
+
+    <select id="findBrandList" parameterType="brand" resultType="brand">
+        select * from (
+            select a.*, rownum rn from(
+                select
+                  t_id as "brandID" ,
+                  t_name as "brandName",
+                  t_img as "brandImgUrl",
+                  to_char(t_create_date,'yyyy-MM-dd') as "createDate",
+                  to_char(t_update_date,'yyyy-MM-dd')as "updateDate"
+                from brand ) a
+            where <![CDATA[rownum<=#{endPos}]]>)
+        where <![CDATA[rn>=#{startPos}]]>
+    </select>
+
+    <insert id="insertBrand" parameterType="brand">
+        INSERT INTO brand
+        (t_id, t_name,t_img)
+        VALUES
+        (t_brand_seq.nextval, #{brandName},#{brandImgUrl})
+    </insert>
+
+
+   
+</mapper>   

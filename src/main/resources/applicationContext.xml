@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context 
+	        http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx.xsd
+	  	 	http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd"
+	default-autowire="byName"
+	default-lazy-init="false">
+	
+	<!-- 开启注解模式 扫描com.jk下的任意子包中的任意类
+	凡是包含：Controller、Service、Repository、Autowired这些注解的类都会被发现 -->
+	<context:component-scan base-package="com.jk.service,common"></context:component-scan>
+	
+	
+	<!-- 加载properties文件 -->
+	<context:property-placeholder location="classpath:datasource.properties,classpath:ftp.properties" />
+	
+	
+	<!-- 配置数据库连接池(druid:alibaba) -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" 
+	init-method="init" destroy-method="close">  
+		<!-- 基本属性 url、user、password --> 
+	    <property name="url" value="${c3p0.orcl.info.url}" />  
+	    <property name="username" value="${c3p0.orcl.info.username}" />  
+	    <property name="password" value="${c3p0.orcl.info.password}" />  
+	    
+	    <!-- 配置初始化大小、最小、最大 -->  
+	    <property name="initialSize" value="1" />  
+	    <property name="minIdle" value="1" />   
+	    <property name="maxActive" value="20" />  
+	   
+	    <!-- 配置获取连接等待超时的时间 -->  
+	    <property name="maxWait" value="60000" />  
+	   
+	    <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->  
+	    <property name="timeBetweenEvictionRunsMillis" value="60000" />  
+	   
+	    <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->  
+	    <property name="minEvictableIdleTimeMillis" value="300000" />
+	    
+	    <!-- 检测连接是否可用 -->
+	    <property name="validationQuery" value="SELECT 'x' from dual" />
+	    <!-- 当连接空闲的时候测试 -->
+	    <property name="testWhileIdle" value="true" /> 
+	    <!-- 连接被借用的时候测试 --> 
+	    <property name="testOnBorrow" value="true" />  
+	    <!-- 连接被归还的时候测试 -->
+	    <property name="testOnReturn" value="true" />
+	    
+	    <!-- 开启监控功能 -->
+	    <!-- 配置监控统计拦截的filters，去掉后监控界面sql无法统计 -->  
+    	<property name="filters" value="stat" />
+	</bean>
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+      <property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="com.jk.pojo" />
+      <property name="mapperLocations" value="classpath:mapper/**/*-mapper.xml" />
+    </bean>
+
+    <!-- Transaction manager for a single JDBC DataSource -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+      <!--<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />-->
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+      <property name="basePackage" value="com.jk.dao" />
+    </bean>
+	
+	<!-- 配置事务传播特性 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="insert*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="update*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="delete*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="*" propagation="REQUIRED" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置切面 -->
+	<aop:config>
+		<!--advice-ref：引入第二步中的传播特性 -->
+		<aop:advisor pointcut="execution (* com.jk.service..*.*(..))"
+			advice-ref="txAdvice" />
+	</aop:config>
+	
+</beans> 

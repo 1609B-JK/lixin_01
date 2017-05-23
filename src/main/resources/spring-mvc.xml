@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"  
+       xmlns:mvc="http://www.springframework.org/schema/mvc"  
+       xmlns:context="http://www.springframework.org/schema/context"  
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+       xsi:schemaLocation="http://www.springframework.org/schema/beans  
+            http://www.springframework.org/schema/beans/spring-beans.xsd  
+            http://www.springframework.org/schema/context   
+            http://www.springframework.org/schema/context/spring-context.xsd  
+            http://www.springframework.org/schema/mvc  
+            http://www.springframework.org/schema/mvc/spring-mvc.xsd"
+            default-autowire="byName">
+
+	<!-- 开启注解模式，扫描com.jk.controller包下的所有子包中的所有类，
+	凡是包含@Controller注解的类都会生成控制层实例 -->
+	<context:component-scan base-package="com.jk.controller"></context:component-scan>
+	
+	<!--
+        jsp视图解析器，对模型视图名称的解析，即在模型视图名称添加前后缀
+	        如/view/welcome.jsp对应的视图名就是：welcome
+	        这个类在视图解析器链中一定要定义在其他视图的后面，因为它始终会返回一个视图
+    -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    	<!-- 返回值的前缀 -->
+        <property name="prefix" value="/WEB-INF/view/"/>
+        <!-- 返回值的后缀 -->
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    
+    
+    <!-- 配置自定义拦截器 -->
+    <!-- <mvc:interceptors>
+        配置拦截器, 多个拦截器,从上往下顺序执行
+        <mvc:interceptor>
+            匹配的是url路径， 如果不配置或/**,将拦截所有的Controller 
+				所有的path路径必须以斜线(/)开头，否则拦不住
+            <mvc:mapping path="/" />
+            <mvc:mapping path="/user/**" />
+            <mvc:mapping path="/test/**" />
+            <mvc:mapping path="/*.do" />
+            <mvc:mapping path="/*.jhtml" />
+            加载的是自定义拦截器的包名、类名
+            <bean class="common.interceptor.LoginInterceptor"></bean>
+        </mvc:interceptor>
+        当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法
+        权限拦截器
+        <mvc:interceptor>
+            匹配的是url路径， 如果不配置或/**,将拦截所有的Controller 
+				所有的path路径必须以斜线(/)开头，否则拦不住
+            <mvc:mapping path="/" />
+            <mvc:mapping path="/user/**" />
+            <mvc:mapping path="/test/**" />
+            <mvc:mapping path="/*.do" />
+            <mvc:mapping path="/*.jhtml" />
+            加载的是自定义拦截器的包名、类名
+            <bean class="common.interceptor.PermissionInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors> -->
+
+
+	
+	<!--上文件上传解析-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--文件的最大上传大小:单位（byte：字节）-->
+        <property name="maxUploadSize" value="20480000"/>
+        <property name="defaultEncoding" value="utf-8"/>
+    </bean>
+
+
+	<!-- 用于将对象转换为 JSON  -->
+    <bean 
+    	class ="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" >
+		<property name="messageConverters">
+		  <list>
+		  	<!-- 引入json转换器 -->
+		   	<bean class="org.springframework.http.converter.json.GsonHttpMessageConverter" />
+		   	<!-- <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter" /> -->
+		  </list>
+		</property>
+	</bean>
+		
+</beans> 
